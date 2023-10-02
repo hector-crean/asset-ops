@@ -1,4 +1,4 @@
-pub mod op_1;
+pub mod video_compression;
 
 /// macOS has a specific requirement that there must be a run loop running on the main thread in
 /// order to open windows and use OpenGL, and that the global NSApplication instance must be

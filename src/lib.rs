@@ -160,7 +160,9 @@ impl<'target, 'dest: 'target, Q: AsRef<Path>> FileSearcher<'target, Q> {
                 let slug = Slug::new(file_name);
 
                 let dest_path = self.dest_folder_path.as_ref().join(&*slug);
-                fs::copy(p, dest_path)?;
+
+                let file_type = AssetFile::from_str(p.to_str().unwrap())?;
+                file_type.write(dest_path)?;
             }
         }
         Ok(())
