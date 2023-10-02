@@ -1,24 +1,10 @@
+use std::path::Path;
+
 use clap::Parser;
+use tracing::{info, Level};
 use tracing_subscriber::{filter, layer::SubscriberExt, util::SubscriberInitExt};
 
-use tracing::{info, Level};
-use tracing_subscriber::prelude::*;
-
-use std::io;
-
-use asset_ops::{read_json, FileSearcher, JsonStrVisitor, TargetFile};
-use regex::Regex;
-
-fn predicate(haystack: &str) -> bool {
-    // let file_regex = Regex::new(
-    //     r#"(?x)"[^\\/:*?<>|\r\n]+\.(pdf|png|jpeg|jpg|mp4|wav|mp3)"
-    // "#,
-    // )
-    // .unwrap();
-    // file_regex.is_match(haystack)
-
-    haystack.ends_with(".pdf")
-}
+use asset_ops::{errors, filename_predicate, read_json, FileSearcher, JsonStrVisitor, TargetFile};
 
 fn op(s: &str) -> &str {
     s.trim()
@@ -36,7 +22,7 @@ struct Cli {
     json_file_path: String,
 }
 
-fn main() -> io::Result<()> {
+fn main() -> Result<(), errors::AssetOpsError> {
     let Cli {
         search_dir,
         dest_folder_path,
@@ -62,12 +48,12 @@ fn main() -> io::Result<()> {
 
     let json = read_json(json_file_path);
     let mut visitor = JsonStrVisitor::new();
-    let visitor = visitor.visit(&json, &predicate, &op);
+    let visitor = visitor.visit(&json, &filename_predicate, &op);
 
     for target_file in &visitor.collected {
-        println!("{:?}", target_file);
         let searcher = FileSearcher::new(&dest_folder_path);
-        searcher.search_and_copy(&TargetFile::AbsolutePath(&target_file), &search_dir)?;
+        let p = Path::new(target_file);
+        searcher.search_and_copy(TargetFile::AbsolutePath(p), &search_dir)?;
     }
 
     Ok(())
