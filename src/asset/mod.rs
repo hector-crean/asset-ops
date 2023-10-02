@@ -1,3 +1,5 @@
+pub mod video;
+
 use std::{
     ffi::OsStr,
     fs::{self, File},
